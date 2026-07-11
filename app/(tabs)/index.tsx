@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import {auth,db} from ".../";
+import {auth,db} from "../../firebase/firebaseConfig";
+import { doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,11 +18,73 @@ type AuthMode = 'signIn' | 'signUp';
 
 export default function HomeScreen() {
   const [mode, setMode] = useState<AuthMode>('signIn');
+
+const [name, setName] = useState("");
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
   const isSignUp = mode === 'signUp';
 
-  const sign_up = () => {
-    
+
+  const sign_in = async () => {
+
+  try {
+
+    const userCredential =
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+
+    const user = userCredential.user;
+
+
+    console.log(
+      "Logged in:",
+      user.uid
+    );
+
+
+  } catch(error:any){
+
+    console.log(
+      "Login error:",
+      error.message
+    );
+
   }
+
+};
+
+  const sign_up = async () => {
+  try {
+
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const user = userCredential.user;
+
+
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      name: name,
+      email: email,
+      createdAt: new Date(),
+    });
+
+
+    console.log("User created:", user.uid);
+
+  } catch (error: any) {
+
+    console.log("Signup error:", error.message);
+
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -82,6 +146,8 @@ export default function HomeScreen() {
                 label="Name"
                 placeholder="Your name"
                 autoCapitalize="words"
+                value={name}
+                onChangeText={setName}
               />
             )}
 
@@ -89,15 +155,22 @@ export default function HomeScreen() {
               label="Email"
               placeholder="you@example.com"
               keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
             />
 
             <Field
               label="Password"
               placeholder="Enter your password"
               secureTextEntry
+              value={password}
+              onChangeText={setPassword}
             />
 
-            <Pressable style={styles.primaryButton}>
+            <Pressable
+  style={styles.primaryButton}
+  onPress={isSignUp ? sign_up : sign_in}
+>
               <Text style={styles.primaryButtonText}>
                 {isSignUp ? 'Create account' : 'Sign in'}
               </Text>
