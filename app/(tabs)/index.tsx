@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {auth,db} from "../../firebase/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
@@ -13,7 +13,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import React from 'react';
 import { router } from 'expo-router';
 
 type AuthMode = 'signIn' | 'signUp';
