@@ -13,6 +13,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import React from 'react';
 
 type AuthMode = 'signIn' | 'signUp';
 
@@ -44,6 +45,7 @@ const [password, setPassword] = useState("");
       "Logged in:",
       user.uid
     );
+    console.log("successfully logged in user:", user);
 
 
   } catch(error:any){
