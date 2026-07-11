@@ -572,3 +572,5 @@ const styles = StyleSheet.create({
   cancelButton: { alignItems: 'center', marginTop: 12 },
   cancelButtonText: { color: '#8A817B', fontSize: 14, fontWeight: '700' },
 });
+
+
