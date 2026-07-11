@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import React from 'react';
+import { router } from 'expo-router';
 
 type AuthMode = 'signIn' | 'signUp';
 
@@ -46,6 +47,7 @@ const [password, setPassword] = useState("");
       user.uid
     );
     console.log("successfully logged in user:", user);
+    router.push("../home");
 
 
   } catch(error:any){
@@ -84,6 +86,7 @@ const [password, setPassword] = useState("");
     });
 
     console.log("Firestore saved");
+    router.push("../home");
 
   } catch (error: any) {
     console.log("Signup error:", error.message);
