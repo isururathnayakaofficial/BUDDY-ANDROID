@@ -70,21 +70,23 @@ const [password, setPassword] = useState("");
 
     const user = userCredential.user;
 
+    console.log("User UID:", user.uid);
 
-    await setDoc(doc(db, "users", user.uid), {
+    const userDoc = doc(db, "users", user.uid);
+
+    console.log("Document reference:", userDoc);
+
+    await setDoc(userDoc, {
       uid: user.uid,
-      name: name,
-      email: email,
+      name,
+      email,
       createdAt: new Date(),
     });
 
-
-    console.log("User created:", user.uid);
+    console.log("Firestore saved");
 
   } catch (error: any) {
-
     console.log("Signup error:", error.message);
-
   }
 };
 
