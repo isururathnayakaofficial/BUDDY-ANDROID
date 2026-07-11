@@ -21,7 +21,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        behavior={Platform.OS === 'android' ? 'padding' : undefined}>
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -33,7 +33,7 @@ export default function HomeScreen() {
 
             <Text style={styles.appName}>buddy</Text>
             <Text style={styles.tagline}>
-              Your little space for big moments.
+              Hay, I’m Buddy! I’m here to help you stay connected with your friends and family.
             </Text>
 
             <View style={styles.clipArt}>
