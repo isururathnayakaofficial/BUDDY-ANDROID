@@ -17,6 +17,10 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<AuthMode>('signIn');
   const isSignUp = mode === 'signUp';
 
+  const sign_up = () => {
+    
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
