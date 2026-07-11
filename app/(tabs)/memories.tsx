@@ -41,19 +41,6 @@ interface Memory {
 
 const EMOJI_OPTIONS = ['☀', '☕', '📞', '✦', '♡', '✎', '◎', '✿', '♫', '⚑'];
 
-const CATEGORY_COLORS: Record<string, string> = {
-  '☀': '#FFE1CC',
-  '☕': '#FFE1CC',
-  '📞': '#DFF4EA',
-  '✦': '#EEF3FF',
-  '♡': '#FFE1E8',
-  '✎': '#F3EEFF',
-  '◎': '#E7F7EF',
-  '✿': '#FFF0E5',
-  '♫': '#EEF3FF',
-  '⚑': '#FFE1E8',
-};
-
 export default function MemoriesScreen() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -177,20 +164,25 @@ export default function MemoriesScreen() {
   }, [title, description, selectedEmoji, editingMemory, resetForm, user]);
 
   const handleDelete = useCallback((memory: Memory) => {
-    Alert.alert('Delete memory', `Are you sure you want to delete "${memory.title}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteDoc(doc(db, 'memories', memory.id));
-          } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to delete.');
-          }
-        },
-      },
-    ]);
+    const doDelete = async () => {
+      try {
+        await deleteDoc(doc(db, 'memories', memory.id));
+      } catch (error: any) {
+        Alert.alert('Error', error.message || 'Failed to delete.');
+      }
+    };
+    if (Platform.OS === 'web') {
+      doDelete();
+    } else {
+      Alert.alert(
+        'Delete memory',
+        `Are you sure you want to delete "${memory.title}"?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => doDelete() },
+        ],
+      );
+    }
   }, []);
 
   const handleToggleComplete = useCallback(async (memory: Memory) => {
@@ -205,16 +197,18 @@ export default function MemoriesScreen() {
 
   const renderItem = useCallback(
     ({ item, index }: { item: Memory; index: number }) => (
-      <View style={[styles.listRow, index < memories.length - 1 && styles.rowBorder]}>
+      <View
+        style={[styles.listRow, index < memories.length - 1 && styles.rowBorder]}
+      >
         <Pressable
           onPress={() => handleToggleComplete(item)}
           style={[
-            styles.itemIcon,
-            { backgroundColor: CATEGORY_COLORS[item.emoji] || '#FFF0E5' },
+            styles.toggleButton,
+            item.completed ? styles.toggleCompleted : styles.togglePending,
           ]}
         >
-          <Text style={[styles.itemEmoji, item.completed && styles.completedText]}>
-            {item.emoji}
+          <Text style={styles.toggleCheck}>
+            {item.completed ? '✓' : ''}
           </Text>
         </Pressable>
 
@@ -230,13 +224,25 @@ export default function MemoriesScreen() {
           >
             {item.title}
           </Text>
+
           <Text style={styles.rowSubtitle} numberOfLines={1}>
             {item.description || ''}
           </Text>
-        </Pressable>
 
-        <Pressable onPress={() => handleDelete(item)} style={styles.deleteButton}>
-          <Text style={styles.deleteButtonText}>×</Text>
+          <Text
+            style={item.completed ? styles.statusDone : styles.statusPending}
+          >
+            {item.completed ? 'Completed' : 'Uncompleted'}
+          </Text>
+        </Pressable>
+        
+
+        <Pressable
+          onPress={() => handleDelete(item)}
+          hitSlop={12}
+          style={styles.deleteButton}
+        >
+          <Text style={styles.deleteButtonText}>Del</Text>
         </Pressable>
       </View>
     ),
@@ -473,17 +479,27 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 2,
   },
-  listRow: { minHeight: 71, flexDirection: 'row', alignItems: 'center' },
+  listRow: { minHeight: 80, flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1EBE7' },
-  itemIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+  itemEmoji: { fontSize: 20 },
+  completedText: { opacity: 0.4 },
+  toggleButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  itemEmoji: { fontSize: 20 },
-  completedText: { opacity: 0.4 },
+  togglePending: {
+    borderColor: '#C0B4AD',
+    backgroundColor: '#FFFFFF',
+  },
+  toggleCompleted: {
+    borderColor: ORANGE,
+    backgroundColor: ORANGE,
+  },
+  toggleCheck: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   rowContent: { flex: 1, marginLeft: 12 },
   rowTitle: { color: '#3F3732', fontSize: 14, fontWeight: '800' },
   completedStrikethrough: {
@@ -491,16 +507,18 @@ const styles = StyleSheet.create({
     color: '#B8ADA6',
   },
   rowSubtitle: { color: '#8A817B', fontSize: 12, marginTop: 4 },
+  statusDone: { color: ORANGE, fontSize: 11, fontWeight: '700', marginTop: 4 },
+  statusPending: { color: '#C0B4AD', fontSize: 11, fontWeight: '700', marginTop: 4 },
 
   deleteButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    paddingHorizontal: 10,
+    height: 28,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFF0EC',
   },
-  deleteButtonText: { color: '#E05D44', fontSize: 20, fontWeight: '800', marginTop: -1 },
+  deleteButtonText: { color: '#E05D44', fontSize: 11, fontWeight: '800' },
 
   emptyState: { alignItems: 'center', marginTop: 60 },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
