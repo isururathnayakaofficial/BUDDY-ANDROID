@@ -1,6 +1,7 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
+  BackHandler,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -11,6 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { router } from "expo-router";
 
 const ORANGE = "#F47A21";
 const API_URL = "https://mern-new-be.onrender.com/api/ai/chat";
@@ -27,6 +29,12 @@ export default function AskMeScreen() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    const onBackPress = () => { router.replace('/home'); return true; };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, []);
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
@@ -109,8 +117,13 @@ export default function AskMeScreen() {
         keyboardVerticalOffset={0}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Ask Buddy</Text>
-          <Text style={styles.headerSub}>Your personal AI assistant</Text>
+          <Pressable onPress={() => router.replace('/home')} style={{ marginRight: 12 }}>
+            <Text style={{ color: '#3F3732', fontSize: 22, fontWeight: '700' }}>←</Text>
+          </Pressable>
+          <View>
+            <Text style={styles.headerTitle}>Ask Buddy</Text>
+            <Text style={styles.headerSub}>Your personal AI assistant</Text>
+          </View>
         </View>
 
         {messages.length === 0 && (

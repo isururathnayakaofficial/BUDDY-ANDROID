@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
   FlatList,
   Linking,
   Pressable,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { getArticles } from '../api/newsAPI';
+import { router } from 'expo-router';
 
 const ORANGE = '#F47A21';
 
@@ -41,6 +43,12 @@ export default function ArticlesScreen() {
   useEffect(() => {
     loadArticles();
   }, [loadArticles]);
+
+  useEffect(() => {
+    const onBackPress = () => { router.replace('/home'); return true; };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, []);
 
   const renderItem = useCallback(
     ({ item, index }: { item: Article; index: number }) => (
@@ -78,6 +86,9 @@ export default function ArticlesScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
+          <Pressable onPress={() => router.replace('/home')} style={{ marginRight: 12 }}>
+            <Text style={{ color: '#3F3732', fontSize: 22, fontWeight: '700' }}>←</Text>
+          </Pressable>
         <View>
           <Text style={styles.greeting}>News Feed</Text>
           <Text style={styles.subheading}>

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -26,6 +27,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { router } from 'expo-router';
 
 const ORANGE = '#F47A21';
 
@@ -143,6 +145,12 @@ export default function MemoriesScreen() {
       if (unsubscribeFirestore) unsubscribeFirestore();
       unsubscribeAuth();
     };
+  }, []);
+
+  useEffect(() => {
+    const onBackPress = () => { router.replace('/home'); return true; };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
   }, []);
 
   const resetForm = useCallback(() => {
@@ -297,6 +305,9 @@ export default function MemoriesScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
+          <Pressable onPress={() => router.replace('/home')} style={{ marginRight: 12 }}>
+            <Text style={{ color: '#3F3732', fontSize: 22, fontWeight: '700' }}>←</Text>
+          </Pressable>
           <View>
             <Text style={styles.greeting}>My Memories</Text>
             <Text style={styles.subheading}>
