@@ -3,6 +3,7 @@ import {auth,db} from "../../firebase/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -56,11 +57,25 @@ const [password, setPassword] = useState("");
       error.message
     );
 
+    if (error.code === "auth/user-not-found") {
+      Alert.alert("Login Failed", "No account found with this email.");
+    } else if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+      Alert.alert("Login Failed", "Invalid email or password.");
+    } else if (error.code === "auth/invalid-email") {
+      Alert.alert("Login Failed", "Please enter a valid email address.");
+    } else {
+      Alert.alert("Login Failed", "Something went wrong. Please try again.");
+    }
+
   }
 
 };
 
   const sign_up = async () => {
+  if (password.length < 6) {
+    Alert.alert("Weak Password", "Password must be at least 6 characters long.");
+    return;
+  }
   try {
 
     const userCredential = await createUserWithEmailAndPassword(
