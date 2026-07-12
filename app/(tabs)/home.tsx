@@ -1,6 +1,7 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -8,56 +9,108 @@ import {
   Text,
   View,
 } from "react-native";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import { auth, db } from "../../firebase/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
-const upcomingMoments = [
-  {
-    title: "Coffee with Maya",
-    time: "Today · 4:30 PM",
-    color: "#FFE1CC",
-    emoji: "☕",
-  },
-  {
-    title: "Call with Sam",
-    time: "Tomorrow · 10:00 AM",
-    color: "#DFF4EA",
-    emoji: "☎",
-  },
-];
+const ORANGE = "#F47A21";
 
-const recentActivity = [
-  {
-    name: "Maya",
-    message: "Shared a new photo with you",
-    time: "12 min ago",
-    color: "#FFB36B",
-  },
-  {
-    name: "Sam",
-    message: "Sent you a little encouragement",
-    time: "Yesterday",
-    color: "#82CBB2",
-  },
-  {
-    name: "Jordan",
-    message: "Added a memory to your circle",
-    time: "Yesterday",
-    color: "#92B9F5",
-  },
-];
+interface Memory {
+  id: string;
+  title: string;
+  description: string;
+  emoji: string;
+  completed: boolean;
+  uid: string;
+  createdAt: any;
+}
+
+interface Note {
+  id: string;
+  title: string;
+  body: string;
+  uid: string;
+  createdAt: any;
+  updatedAt: any;
+}
 
 export default function HomeScreen() {
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loadingMemories, setLoadingMemories] = useState(true);
+  const [loadingNotes, setLoadingNotes] = useState(true);
+
+  useEffect(() => {
+    let unsubscribeMemories: (() => void) | null = null;
+    let unsubscribeNotes: (() => void) | null = null;
+    let currentUid: string | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      const newUid = firebaseUser?.uid ?? null;
+      if (newUid === currentUid) return;
+      currentUid = newUid;
+
+      if (unsubscribeMemories) { unsubscribeMemories(); unsubscribeMemories = null; }
+      if (unsubscribeNotes) { unsubscribeNotes(); unsubscribeNotes = null; }
+
+      if (!firebaseUser) {
+        setMemories([]);
+        setNotes([]);
+        setLoadingMemories(false);
+        setLoadingNotes(false);
+        return;
+      }
+
+      const memQuery = query(
+        collection(db, "memories"),
+        where("uid", "==", firebaseUser.uid),
+      );
+      unsubscribeMemories = onSnapshot(memQuery, (snap) => {
+        const all: Memory[] = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Memory[];
+        all.sort((a, b) => {
+          const aT = a.createdAt?.seconds ?? 0;
+          const bT = b.createdAt?.seconds ?? 0;
+          return aT - bT;
+        });
+        setMemories(all.slice(0, 2));
+        setLoadingMemories(false);
+      }, () => setLoadingMemories(false));
+
+      const noteQuery = query(
+        collection(db, "notes"),
+        where("uid", "==", firebaseUser.uid),
+      );
+      unsubscribeNotes = onSnapshot(noteQuery, (snap) => {
+        const all: Note[] = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Note[];
+        all.sort((a, b) => {
+          const aT = a.updatedAt?.seconds ?? a.createdAt?.seconds ?? 0;
+          const bT = b.updatedAt?.seconds ?? b.createdAt?.seconds ?? 0;
+          return bT - aT;
+        });
+        setNotes(all.slice(0, 3));
+        setLoadingNotes(false);
+      }, () => setLoadingNotes(false));
+    });
+
+    return () => {
+      if (unsubscribeMemories) unsubscribeMemories();
+      if (unsubscribeNotes) unsubscribeNotes();
+      unsubscribeAuth();
+    };
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Good morning, Alex</Text>
-            <Text style={styles.subheading}>
-              Here is your little corner of Buddy.
-            </Text>
+            <Text style={styles.subheading}>Here is your little corner of Buddy.</Text>
           </View>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>A</Text>
@@ -68,9 +121,9 @@ export default function HomeScreen() {
           <View style={styles.heroCopy}>
             <Text style={styles.heroEyebrow}>YOUR BUDDY CIRCLE</Text>
             <Text style={styles.heroTitle}>
-              3 people are cheering you on today.
+              {memories.length + notes.length} items saved across memories and notes.
             </Text>
-            <Pressable style={styles.heroButton} onPress={() => {}}>
+            <Pressable style={styles.heroButton} onPress={() => router.push('/memories')}>
               <Text style={styles.heroButtonText}>See your circle</Text>
             </Pressable>
           </View>
@@ -90,65 +143,90 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Coming up</Text>
-          <Pressable onPress={() => {}}>
+          <Pressable onPress={() => router.push('/memories')}>
             <Text style={styles.textButton}>View all</Text>
           </Pressable>
         </View>
         <View style={styles.listCard}>
-          {upcomingMoments.map((moment, index) => (
-            <View
-              key={moment.title}
-              style={[styles.listRow, index === 0 && styles.rowBorder]}
-            >
-              <View
-                style={[styles.itemIcon, { backgroundColor: moment.color }]}
-              >
-                <Text style={styles.itemEmoji}>{moment.emoji}</Text>
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.rowTitle}>{moment.title}</Text>
-                <Text style={styles.rowSubtitle}>{moment.time}</Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
+          {loadingMemories ? (
+            <View style={styles.emptyRow}>
+              <ActivityIndicator size="small" color={ORANGE} />
             </View>
-          ))}
+          ) : memories.length === 0 ? (
+            <View style={styles.emptyRow}>
+              <Text style={styles.emptyText}>No memories yet. Tap + to add one.</Text>
+            </View>
+          ) : (
+            memories.map((memory, index) => (
+              <Pressable
+                key={memory.id}
+                style={[styles.listRow, index < memories.length - 1 && styles.rowBorder]}
+                onPress={() => router.push('/memories')}
+              >
+                <View style={[styles.itemIcon, { backgroundColor: memory.completed ? "#DFF4EA" : "#FFE1CC" }]}>
+                  <Text style={styles.itemEmoji}>{memory.emoji || "✦"}</Text>
+                </View>
+                <View style={styles.rowContent}>
+                  <Text style={styles.rowTitle} numberOfLines={1}>{memory.title}</Text>
+                  <Text style={styles.rowSubtitle} numberOfLines={1}>{memory.description || "No description"}</Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </Pressable>
+            ))
+          )}
         </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent activity</Text>
-          <Pressable onPress={() => {}}>
+          <Pressable onPress={() => router.push('/notes')}>
             <Text style={styles.textButton}>View all</Text>
           </Pressable>
         </View>
         <View style={styles.listCard}>
-          {recentActivity.map((activity, index) => (
-            <View
-              key={activity.name}
-              style={[
-                styles.listRow,
-                index < recentActivity.length - 1 && styles.rowBorder,
-              ]}
-            >
-              <View
-                style={[
-                  styles.avatar,
-                  styles.smallAvatar,
-                  { backgroundColor: activity.color },
-                ]}
-              >
-                <Text style={styles.smallAvatarText}>{activity.name[0]}</Text>
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.rowTitle}>{activity.name}</Text>
-                <Text style={styles.rowSubtitle}>{activity.message}</Text>
-              </View>
-              <Text style={styles.activityTime}>{activity.time}</Text>
+          {loadingNotes ? (
+            <View style={styles.emptyRow}>
+              <ActivityIndicator size="small" color={ORANGE} />
             </View>
-          ))}
+          ) : notes.length === 0 ? (
+            <View style={styles.emptyRow}>
+              <Text style={styles.emptyText}>No notes yet. Tap + to create one.</Text>
+            </View>
+          ) : (
+            notes.map((note, index) => (
+              <Pressable
+                key={note.id}
+                style={[styles.listRow, index < notes.length - 1 && styles.rowBorder]}
+                onPress={() => router.push('/notes')}
+              >
+                <View style={[styles.itemIcon, { backgroundColor: "#EEF3FF" }]}>
+                  <Text style={styles.itemEmoji}>✎</Text>
+                </View>
+                <View style={styles.rowContent}>
+                  <Text style={styles.rowTitle} numberOfLines={1}>{note.title || "Untitled"}</Text>
+                  <Text style={styles.rowSubtitle} numberOfLines={1}>{note.body || "No content"}</Text>
+                </View>
+                <Text style={styles.activityTime}>
+                  {note.updatedAt?.seconds
+                    ? timeAgo(note.updatedAt.seconds)
+                    : note.createdAt?.seconds
+                      ? timeAgo(note.createdAt.seconds)
+                      : "Just now"}
+                </Text>
+              </Pressable>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function timeAgo(seconds: number): string {
+  const diff = Math.floor(Date.now() / 1000) - seconds;
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
 
 function ActionButton({
@@ -163,17 +241,12 @@ function ActionButton({
   onPress?: () => void;
 }) {
   return (
-    <Pressable
-      style={[styles.actionButton, { backgroundColor: color }]}
-      onPress={onPress}
-    >
+    <Pressable style={[styles.actionButton, { backgroundColor: color }]} onPress={onPress}>
       <Text style={styles.actionEmoji}>{emoji}</Text>
       <Text style={styles.actionLabel}>{label}</Text>
     </Pressable>
   );
 }
-
-const ORANGE = "#F47A21";
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFF9F5" },
@@ -184,144 +257,70 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  greeting: {
-    color: "#292420",
-    fontSize: 25,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
+  greeting: { color: "#292420", fontSize: 25, fontWeight: "800", letterSpacing: -0.5 },
   subheading: { color: "#807772", fontSize: 14, marginTop: 5 },
   avatar: {
-    width: 45,
-    height: 45,
-    borderRadius: 23,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 45, height: 45, borderRadius: 23,
+    alignItems: "center", justifyContent: "center",
     backgroundColor: ORANGE,
   },
   avatarText: { color: "#FFFFFF", fontSize: 18, fontWeight: "800" },
   heroCard: {
-    flexDirection: "row",
-    overflow: "hidden",
-    minHeight: 178,
-    borderRadius: 25,
-    backgroundColor: ORANGE,
-    padding: 22,
-    marginTop: 26,
+    flexDirection: "row", overflow: "hidden", minHeight: 178,
+    borderRadius: 25, backgroundColor: ORANGE, padding: 22, marginTop: 26,
   },
   heroCopy: { flex: 1, zIndex: 1 },
-  heroEyebrow: {
-    color: "#FFE1CA",
-    fontWeight: "800",
-    fontSize: 10,
-    letterSpacing: 1,
-  },
-  heroTitle: {
-    color: "#FFFFFF",
-    fontWeight: "800",
-    fontSize: 21,
-    lineHeight: 27,
-    marginTop: 10,
-    maxWidth: 210,
-  },
+  heroEyebrow: { color: "#FFE1CA", fontWeight: "800", fontSize: 10, letterSpacing: 1 },
+  heroTitle: { color: "#FFFFFF", fontWeight: "800", fontSize: 21, lineHeight: 27, marginTop: 10, maxWidth: 210 },
   heroButton: {
-    alignSelf: "flex-start",
-    marginTop: 16,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 11,
+    alignSelf: "flex-start", marginTop: 16,
+    paddingHorizontal: 13, paddingVertical: 9,
+    backgroundColor: "#FFFFFF", borderRadius: 11,
   },
   heroButtonText: { color: ORANGE, fontSize: 12, fontWeight: "800" },
   heroArt: {
-    position: "absolute",
-    right: -12,
-    bottom: -27,
-    width: 146,
-    height: 146,
-    borderRadius: 73,
-    backgroundColor: "#FF9B56",
-    alignItems: "center",
-    justifyContent: "center",
+    position: "absolute", right: -12, bottom: -27,
+    width: 146, height: 146, borderRadius: 73,
+    backgroundColor: "#FF9B56", alignItems: "center", justifyContent: "center",
   },
   heroHeart: { color: "#FFFFFF", fontSize: 54, marginTop: -5 },
   artBubbleOne: {
-    position: "absolute",
-    top: 11,
-    left: 4,
-    width: 25,
-    height: 25,
-    borderRadius: 13,
-    backgroundColor: "#FFD4B5",
+    position: "absolute", top: 11, left: 4,
+    width: 25, height: 25, borderRadius: 13, backgroundColor: "#FFD4B5",
   },
   artBubbleTwo: {
-    position: "absolute",
-    bottom: 19,
-    left: -13,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#FFB579",
+    position: "absolute", bottom: 19, left: -13,
+    width: 42, height: 42, borderRadius: 21, backgroundColor: "#FFB579",
   },
   sectionTitle: { color: "#352E2A", fontSize: 18, fontWeight: "800" },
-  actionGrid: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 13,
-    marginBottom: 28,
-  },
+  actionGrid: { flexDirection: "row", gap: 10, marginTop: 13, marginBottom: 28 },
   actionButton: {
-    flex: 1,
-    minHeight: 102,
-    borderRadius: 18,
-    padding: 13,
-    justifyContent: "space-between",
+    flex: 1, minHeight: 102, borderRadius: 18, padding: 13, justifyContent: "space-between",
   },
   actionEmoji: { color: ORANGE, fontSize: 23, fontWeight: "800" },
-  actionLabel: {
-    color: "#4B413B",
-    fontSize: 13,
-    fontWeight: "800",
-    lineHeight: 17,
-  },
+  actionLabel: { color: "#4B413B", fontSize: 13, fontWeight: "800", lineHeight: 17 },
   sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12,
   },
   textButton: { color: ORANGE, fontSize: 13, fontWeight: "800" },
   listCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 19,
-    paddingHorizontal: 16,
-    marginBottom: 27,
-    shadowColor: "#765E50",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
+    backgroundColor: "#FFFFFF", borderRadius: 19, paddingHorizontal: 16, marginBottom: 27,
+    shadowColor: "#765E50", shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   listRow: { minHeight: 71, flexDirection: "row", alignItems: "center" },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: "#F1EBE7" },
   itemIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
   },
   itemEmoji: { fontSize: 20 },
   rowContent: { flex: 1, marginLeft: 12 },
   rowTitle: { color: "#3F3732", fontSize: 14, fontWeight: "800" },
   rowSubtitle: { color: "#8A817B", fontSize: 12, marginTop: 4 },
   chevron: { color: "#C0B4AD", fontSize: 28, lineHeight: 30 },
-  smallAvatar: { width: 37, height: 37, borderRadius: 19 },
-  smallAvatarText: { color: "#FFFFFF", fontWeight: "800" },
+  emptyRow: { minHeight: 71, alignItems: "center", justifyContent: "center" },
+  emptyText: { color: "#A69B94", fontSize: 13 },
   activityTime: {
-    color: "#A69B94",
-    fontSize: 10,
-    alignSelf: "flex-start",
-    marginTop: 19,
+    color: "#A69B94", fontSize: 10, alignSelf: "flex-start", marginTop: 19,
   },
 });
