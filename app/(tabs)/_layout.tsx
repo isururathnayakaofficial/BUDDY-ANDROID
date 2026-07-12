@@ -30,6 +30,18 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="PdfViewer"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="PdfPicker"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
