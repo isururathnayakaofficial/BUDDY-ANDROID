@@ -149,11 +149,20 @@ export default function NotesScreen() {
     [editingNote, title, autoSave],
   );
 
+  const getUntitledName = useCallback((): string => {
+    const existingTitles = notes.map((n) => n.title);
+    if (!existingTitles.includes('Untitled')) return 'Untitled';
+    let i = 1;
+    while (existingTitles.includes(`Untitled ${i}`)) i++;
+    return `Untitled ${i}`;
+  }, [notes]);
+
   const handleCreate = useCallback(async () => {
     if (!user) return;
+    const noteTitle = getUntitledName();
     try {
       const docRef = await addDoc(collection(db, 'notes'), {
-        title: '',
+        title: noteTitle,
         body: '',
         uid: user.uid,
         createdAt: serverTimestamp(),
@@ -161,20 +170,20 @@ export default function NotesScreen() {
       });
       const newNote: Note = {
         id: docRef.id,
-        title: '',
+        title: noteTitle,
         body: '',
         uid: user.uid,
         createdAt: null,
         updatedAt: null,
       };
       setEditingNote(newNote);
-      setTitle('');
+      setTitle(noteTitle);
       setBody('');
       setModalVisible(true);
     } catch (error: any) {
       console.log('Create note error:', error.message);
     }
-  }, [user]);
+  }, [user, getUntitledName]);
 
   const handleDelete = useCallback((note: Note) => {
     const doDelete = async () => {

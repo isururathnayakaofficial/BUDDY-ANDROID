@@ -85,7 +85,7 @@ export default function HomeScreen() {
         <View style={styles.actionGrid}>
           <ActionButton emoji="✦" label="Add memory" color="#FFF0E5" onPress={() => router.push('/memories')} />
           <ActionButton emoji="☺" label="Watch articles" color="#E7F7EF" onPress={() => router.push('/articles')} />
-          <ActionButton emoji="+" label="Invite buddy" color="#EEF3FF" />
+          <ActionButton emoji="✎" label="Notes" color="#EEF3FF" onPress={() => router.push('/notes')} />
         </View>
 
         <View style={styles.sectionHeader}>
