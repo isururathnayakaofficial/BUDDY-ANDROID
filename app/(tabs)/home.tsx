@@ -39,11 +39,19 @@ interface Note {
   updatedAt: any;
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function HomeScreen() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [loadingMemories, setLoadingMemories] = useState(true);
   const [loadingNotes, setLoadingNotes] = useState(true);
+  const [userName, setUserName] = useState("buddy");
 
   useEffect(() => {
     let unsubscribeMemories: (() => void) | null = null;
@@ -63,8 +71,11 @@ export default function HomeScreen() {
         setNotes([]);
         setLoadingMemories(false);
         setLoadingNotes(false);
+        setUserName("buddy");
         return;
       }
+
+      setUserName(firebaseUser.displayName || "friend");
 
       const memQuery = query(
         collection(db, "memories"),
@@ -109,7 +120,7 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good morning, Alex</Text>
+            <Text style={styles.greeting}>{getGreeting()}, {userName}</Text>
             <Text style={styles.subheading}>Here is your little corner of Buddy.</Text>
           </View>
           <View style={styles.avatar}>
@@ -139,6 +150,7 @@ export default function HomeScreen() {
           <ActionButton emoji="✦" label="Add memory" color="#FFF0E5" onPress={() => router.push('/memories')} />
           <ActionButton emoji="☺" label="Watch articles" color="#E7F7EF" onPress={() => router.push('/articles')} />
           <ActionButton emoji="✎" label="Notes" color="#EEF3FF" onPress={() => router.push('/notes')} />
+          <ActionButton emoji="✦" label="Ask me" color="#FFF0E5" onPress={() => router.push('/askme')} />
         </View>
 
         <View style={styles.sectionHeader}>
