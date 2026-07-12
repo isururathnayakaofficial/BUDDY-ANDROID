@@ -39,6 +39,13 @@ interface Memory {
   createdAt: any;
 }
 
+interface Pokemon {
+  name: string;
+  id: number;
+  sprite: string;
+  types: string;
+}
+
 const EMOJI_OPTIONS = ['☀', '☕', '📞', '✦', '♡', '✎', '◎', '✿', '♫', '⚑'];
 
 export default function MemoriesScreen() {
@@ -51,6 +58,40 @@ export default function MemoriesScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('☀');
+
+  const [tab, setTab] = useState<'memories' | 'pokemon'>('memories');
+
+  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
+  const [pokemonLoading, setPokemonLoading] = useState(true);
+
+  const fetchPokemon = useCallback(async () => {
+    try {
+      setPokemonLoading(true);
+      const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=20');
+      const data = await res.json();
+      const details = await Promise.all(
+        data.results.map(async (p: { name: string; url: string }) => {
+          const r = await fetch(p.url);
+          const d = await r.json();
+          return {
+            name: d.name,
+            id: d.id,
+            sprite: d.sprites.front_default,
+            types: d.types.map((t: any) => t.type.name).join(', '),
+          };
+        }),
+      );
+      setPokemon(details);
+    } catch (error: any) {
+      console.log('Pokemon fetch error:', error.message);
+    } finally {
+      setPokemonLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPokemon();
+  }, [fetchPokemon]);
 
   useEffect(() => {
     let unsubscribeFirestore: (() => void) | null = null;
@@ -255,61 +296,118 @@ export default function MemoriesScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <FlatList
-          data={memories}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <>
-              <View style={styles.header}>
-                <View>
-                  <Text style={styles.greeting}>My Memories</Text>
-                  <Text style={styles.subheading}>
-                    Your personal collection of moments.
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>My Memories</Text>
+            <Text style={styles.subheading}>
+              Your personal collection of moments.
+            </Text>
+          </View>
+          <Pressable style={styles.addButton} onPress={openAddModal}>
+            <Text style={styles.addButtonText}>+</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.tabRow}>
+          <Pressable
+            style={[styles.tabButton, tab === 'memories' && styles.tabActive]}
+            onPress={() => setTab('memories')}
+          >
+            <Text style={[styles.tabText, tab === 'memories' && styles.tabTextActive]}>
+              Memories
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.tabButton, tab === 'pokemon' && styles.tabActive]}
+            onPress={() => setTab('pokemon')}
+          >
+            <Text style={[styles.tabText, tab === 'pokemon' && styles.tabTextActive]}>
+              Pokémon
+            </Text>
+          </Pressable>
+        </View>
+
+        {tab === 'memories' ? (
+          <FlatList
+            data={memories}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              <>
+                <View style={styles.heroCard}>
+                  <View style={styles.heroCopy}>
+                    <Text style={styles.heroEyebrow}>YOUR MEMORIES</Text>
+                    <Text style={styles.heroTitle}>
+                      {memories.filter((m) => m.completed).length} of {memories.length}{' '}
+                      memories saved.
+                    </Text>
+                  </View>
+                  <View style={styles.heroArt}>
+                    <View style={styles.artBubbleOne} />
+                    <View style={styles.artBubbleTwo} />
+                    <Text style={styles.heroHeart}>✦</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.sectionTitle}>All memories</Text>
+              </>
+            }
+            ListEmptyComponent={
+              loading ? (
+                <View style={styles.emptyState}>
+                  <ActivityIndicator size="large" color={ORANGE} />
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyEmoji}>☐</Text>
+                  <Text style={styles.emptyTitle}>No memories yet</Text>
+                  <Text style={styles.emptySubtitle}>
+                    Tap the + button to add your first memory.
                   </Text>
                 </View>
-                <Pressable style={styles.addButton} onPress={openAddModal}>
-                  <Text style={styles.addButtonText}>+</Text>
-                </Pressable>
-              </View>
-
-              <View style={styles.heroCard}>
-                <View style={styles.heroCopy}>
-                  <Text style={styles.heroEyebrow}>YOUR MEMORIES</Text>
-                  <Text style={styles.heroTitle}>
-                    {memories.filter((m) => m.completed).length} of {memories.length}{' '}
-                    memories saved.
-                  </Text>
+              )
+            }
+            ListFooterComponent={<View style={{ height: 40 }} />}
+          />
+        ) : (
+          <FlatList
+            data={pokemon}
+            keyExtractor={(item) => String(item.id)}
+            numColumns={2}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            columnWrapperStyle={styles.pokemonRow}
+            ListHeaderComponent={
+              <Text style={styles.sectionTitle}>Pokédex</Text>
+            }
+            renderItem={({ item }) => (
+              <View style={styles.pokemonCard}>
+                <View style={styles.pokemonSpriteWrap}>
+                  {item.sprite ? (
+                    <Text style={styles.pokemonEmoji}>🎮</Text>
+                  ) : null}
+                  <Text style={styles.pokemonName}>{item.name}</Text>
                 </View>
-                <View style={styles.heroArt}>
-                  <View style={styles.artBubbleOne} />
-                  <View style={styles.artBubbleTwo} />
-                  <Text style={styles.heroHeart}>✦</Text>
+                <Text style={styles.pokemonId}>#{item.id}</Text>
+                <Text style={styles.pokemonType}>{item.types}</Text>
+              </View>
+            )}
+            ListEmptyComponent={
+              pokemonLoading ? (
+                <View style={styles.emptyState}>
+                  <ActivityIndicator size="large" color={ORANGE} />
                 </View>
-              </View>
-
-              <Text style={styles.sectionTitle}>All memories</Text>
-            </>
-          }
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.emptyState}>
-                <ActivityIndicator size="large" color={ORANGE} />
-              </View>
-            ) : (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyEmoji}>☐</Text>
-                <Text style={styles.emptyTitle}>No memories yet</Text>
-                <Text style={styles.emptySubtitle}>
-                  Tap the + button to add your first memory.
-                </Text>
-              </View>
-            )
-          }
-          ListFooterComponent={<View style={{ height: 40 }} />}
-        />
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyTitle}>No Pokémon loaded</Text>
+                </View>
+              )
+            }
+            ListFooterComponent={<View style={{ height: 40 }} />}
+          />
+        )}
 
         <Modal
           visible={modalVisible}
