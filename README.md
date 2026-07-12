@@ -1,134 +1,430 @@
-# Buddy - Easy Day Today 📱✨
+# 📱 Buddy - Easy Day Today
 
-Buddy is a modern productivity and personal assistant mobile application designed to help users organize their daily activities, manage notes, track tasks, discover useful articles, and interact with AI assistance — all in one simple and user-friendly platform.
+<div align="center">
 
-Built with **React Native (Expo)** for the mobile experience and **Firebase** as the backend infrastructure, Buddy provides a secure, scalable, and real-time application environment.
+![React Native](https://img.shields.io/badge/React%20Native-Expo-blue.svg)
+![Firebase](https://img.shields.io/badge/Firebase-Backend-orange.svg)
+![Node.js](https://img.shields.io/badge/Node.js-AI%20Backend-green.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-success.svg)
+
+A modern AI-powered personal productivity application built with **React Native (Expo)**, **Firebase**, and **Node.js**, helping users organize daily life, manage notes, track todos, read technology articles, and interact with an intelligent AI assistant.
+
+</div>
 
 ---
 
-## 🚀 Features
+# 📖 Overview
 
-### 🔐 Authentication System
-- Secure user registration and login
-- Firebase Authentication integration
-- User session management
-- Protected user data access
-- Profile-based data storage
+Buddy is an all-in-one productivity companion designed to simplify everyday life.
 
-**Technology**
+The application combines note management, task planning, article discovery, cloud synchronization, and AI assistance into one seamless mobile experience.
+
+Users can securely access their personal workspace from anywhere while all data remains synchronized through Firebase.
+
+---
+
+# 🚀 Download Android App
+
+### 📦 APK Installation
+
+You can install the latest Android build from Expo:
+
+**Android Build**
+
+https://expo.dev/accounts/isuru_rathnayaka/projects/buddy/builds/c578235e-bb76-454f-a225-72b40c8cf11f
+
+---
+
+# ✨ Features
+
+---
+
+## 🔐 Secure Authentication
+
+Buddy provides secure authentication powered by Firebase Authentication.
+
+### Features
+
+- User Registration
+- User Login
+- Logout
+- Secure Sessions
+- Password Protection
+- User Profile Management
+- Protected Routes
+- Persistent Authentication
+
+### Technology
+
 - Firebase Authentication
-- Secure authentication flow
-- JWT-based security handling through Firebase SDK
+- Firebase SDK
+- Secure Token Management
 
 ---
 
-# 📝 Smart Notes System
+# 📝 Smart Notes
 
-Create, edit, organize, and manage personal notes easily.
+Create and manage notes effortlessly with automatic cloud synchronization.
 
-### Features:
-- Create unlimited notes
-- Edit and delete notes
-- Real-time synchronization
-- Automatic saving system similar to Notion/Google Docs
-- Cloud-based note storage
-- User-specific private notes
+### Features
 
-**Technology**
+- Create Notes
+- Update Notes
+- Delete Notes
+- Auto Save
+- Rich Note Storage
+- Real-time Synchronization
+- User Private Notes
+
+### Technology
+
 - Firebase Firestore
-- Real-time database synchronization
-- Debounced auto-save mechanism
+- React Native
+- Debounced Auto Save
 
 ---
 
-# ✅ Todo & Daily Task Management
+# ✅ Todo Management
 
-Manage daily activities and improve productivity.
+Stay productive by organizing your daily tasks.
 
-### Features:
-- Create tasks
-- Update task status
-- Mark completed tasks
-- Delete tasks
-- Organize daily goals
-- Real-time task updates
+### Features
 
-**Technology**
+- Create Todos
+- Edit Todos
+- Delete Todos
+- Complete Tasks
+- Daily Planning
+- Task Progress Tracking
+- Real-time Updates
+
+### Technology
+
 - Firebase Firestore
-- React Native state management
+- React Native State Management
 
 ---
 
-# 📰 AI Powered Article Reading System
+# 🤖 AI Assistant
 
-Buddy provides personalized article recommendations using third-party content APIs.
+Buddy includes an intelligent AI assistant powered by a dedicated Node.js backend.
 
-### Features:
-- Technology and industry-related articles
-- Personalized article categories
-- Article reading interface
-- External API integration
-- Save favorite articles
+Instead of exposing AI API keys inside the mobile application, every AI request is securely processed through the backend.
 
-### Third-party APIs:
-- News APIs
-- Content aggregation APIs
+### AI Features
 
-Examples:
-- GNews API
+- AI Chat Assistant
+- Productivity Suggestions
+- Question Answering
+- Smart Recommendations
+- Note Assistance
+- Writing Assistance
+- Content Summarization
+
+---
+
+# 🧠 AI Prompt Keyword Extraction
+
+Before sending prompts to the AI service, Buddy intelligently extracts keywords from user messages.
+
+Example:
+
+Input
+
+```
+How can I improve my daily productivity while studying software engineering?
+```
+
+Extracted Keywords
+
+```
+productivity,
+studying,
+software engineering,
+daily planning
+```
+
+These keywords are used for:
+
+- AI context optimization
+- Prompt enhancement
+- Search indexing
+- Recommendation generation
+- Faster AI responses
+
+---
+
+# 🌐 External API Integrations
+
+Buddy integrates several third-party APIs to enrich the user experience.
+
+### News APIs
+
 - NewsAPI
+- GNews API
+
+Used For
+
+- Technology News
+- Startup News
+- AI Articles
+- Programming Articles
+- Industry Updates
 
 ---
 
-# 🤖 AI Assistant Integration
+# ⚙️ Node.js AI Backend
 
-Buddy includes AI-powered features to help users improve productivity.
+A dedicated backend server securely handles all AI-related operations.
 
-### AI Features:
-- AI chat assistant
-- Smart note suggestions
-- Content summarization
-- Productivity recommendations
-- Question answering
+### Responsibilities
 
-### Technology:
-- AI API Integration
-- Firebase Cloud Functions
-- Secure API key handling
+- AI Prompt Processing
+- Keyword Extraction
+- AI API Communication
+- Authentication Validation
+- Request Filtering
+- Prompt Optimization
+- Response Formatting
+
+### Backend Stack
+
+- Node.js
+- Express.js
+- TypeScript
+- Firebase Admin SDK
 
 ---
 
-# ☁️ Backend Architecture
+# 🔥 Firebase Backend
 
-Buddy uses Firebase as the complete backend solution.
+Buddy uses Firebase as its primary backend infrastructure.
 
-## Firebase Services Used:
+## Firebase Authentication
 
-### Firebase Authentication
-Handles:
-- User registration
-- Login/logout
-- User identity management
+Provides
 
-### Cloud Firestore
-Handles:
-- Notes storage
-- Todo management
-- User data
-- Application records
+- Registration
+- Login
+- User Management
+- Secure Authentication
 
-### Firebase Cloud Functions
-Handles:
-- Secure backend logic
-- AI API communication
-- Third-party API requests
-- Sensitive API key protection
+---
 
-### Firebase Storage
-Handles:
-- User file uploads
-- Media storage
+## Cloud Firestore
+
+Stores
+
+- Notes
+- Todos
+- User Profiles
+- Saved Articles
+- User Preferences
+
+---
+
+## Firebase Storage
+
+Used for
+
+- Images
+- Documents
+- User Files
+- Media Uploads
+
+---
+
+## Firebase Cloud Functions
+
+Used for
+
+- Secure API Requests
+- Third-party API Communication
+- Background Tasks
+- Event Processing
 
 ---
 
 # 🏗️ Application Architecture
+
+```
+
+React Native (Expo)
+│
+├── Authentication
+│
+├── Notes
+│
+├── Todos
+│
+├── Articles
+│
+├── AI Chat
+│
+└── User Profile
+│
+▼
+Firebase
+│
+├── Authentication
+├── Firestore
+├── Storage
+└── Cloud Functions
+│
+▼
+Node.js Backend
+│
+├── AI Prompt Processing
+├── Keyword Extraction
+├── AI API Integration
+├── External APIs
+└── Response Generation
+
+```
+
+---
+
+# 🛠 Tech Stack
+
+## Mobile
+
+- React Native
+- Expo
+- TypeScript
+
+## Backend
+
+- Node.js
+- Express.js
+- TypeScript
+
+## Database
+
+- Firebase Firestore
+
+## Authentication
+
+- Firebase Authentication
+
+## Storage
+
+- Firebase Storage
+
+## AI
+
+- AI API Integration
+- Prompt Engineering
+- Keyword Extraction
+
+## External APIs
+
+- NewsAPI
+- GNews API
+
+---
+
+# 📂 Project Structure
+
+```
+
+Buddy/
+│
+├── app/
+├── assets/
+├── components/
+├── screens/
+├── navigation/
+├── services/
+├── hooks/
+├── context/
+├── firebase/
+├── utils/
+├── constants/
+└── App.tsx
+
+```
+
+Backend
+
+```
+
+server/
+│
+├── controllers/
+├── middleware/
+├── routes/
+├── services/
+├── utils/
+├── ai/
+│ ├── keywordExtractor.ts
+│ ├── promptBuilder.ts
+│ ├── aiService.ts
+│
+├── firebase/
+└── server.ts
+
+```
+
+---
+
+# 🔒 Security
+
+Buddy follows modern security practices.
+
+- Firebase Authentication
+- Secure User Sessions
+- Protected Firestore Rules
+- Hidden AI API Keys
+- Backend AI Processing
+- Secure Cloud Functions
+- User Data Isolation
+
+---
+
+# 🚀 Future Improvements
+
+- Voice Assistant
+- OCR Document Scanner
+- Calendar Integration
+- Offline Mode
+- Push Notifications
+- Habit Tracker
+- AI Study Planner
+- AI Schedule Generator
+- AI Note Generator
+- File Reader (PDF, DOCX, PPTX)
+- Dark Mode
+- Multi-language Support
+
+---
+
+# 📸 Screenshots
+
+> Screenshots will be added soon.
+
+---
+
+# 👨‍💻 Developer
+
+**G.D. Isuru Nirmal Rathnayaka**
+
+Software Engineering Undergraduate
+
+Full Stack Developer
+
+React Native • Firebase • Node.js • TypeScript • AI Integration
+
+---
+
+# ⭐ Support
+
+If you like this project, consider giving it a ⭐ on GitHub.
+
+It helps support future development.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
